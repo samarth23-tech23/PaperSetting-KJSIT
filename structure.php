@@ -345,6 +345,63 @@ for ($section = 1; $section <= 4; $section++) {
 
         </div>
        <script>
+function populateBTOptions(coSelect, btSelect) {
+    // Reset previous BT options
+    while (btSelect.options.length > 0) {
+        btSelect.remove(0);
+    }
+
+    // Get the value of the first option in the CO dropdown
+    var coId = coSelect.value;
+
+    if (coId) {
+        // Fetch BT options based on the selected CO
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var btOptions = JSON.parse(this.responseText);
+
+                // Add fetched BT options
+                for (var i = 0; i < btOptions.length; i++) {
+                    var option = document.createElement("option");
+                    option.value = btOptions[i].bt_id;
+                    option.text = btOptions[i].bt_description;
+                    btSelect.add(option);
+                }
+
+                // Automatically select the first BT option
+                if (btSelect.options.length > 0) {
+                    btSelect.selectedIndex = 0;
+                }
+            }
+        };
+
+        // Fetch BT options for the selected CO
+        xhttp.open("GET", "get_bt_options.php?co_id=" + coId, true);
+        xhttp.send();
+    }
+}
+
+// Add an event listener to the CO dropdowns
+document.addEventListener("DOMContentLoaded", function () {
+    var coDropdowns = document.querySelectorAll("select[name='co[]']");
+    var btDropdowns = document.querySelectorAll("select[name='bt_level[]']");
+
+    coDropdowns.forEach(function (coSelect, index) {
+        coSelect.addEventListener("change", function () {
+            var btSelect = btDropdowns[index];
+            populateBTOptions(coSelect, btSelect);
+        });
+
+        // Trigger the change event on page load for the first CO dropdown
+        if (index === 0) {
+            var event = new Event("change");
+            coSelect.dispatchEvent(event);
+        }
+    });
+});
+
+
 function generateQuestions(button) {
     var rowNumber = button.dataset.row;
     var coSelect = document.getElementById("coSelect_" + rowNumber);
